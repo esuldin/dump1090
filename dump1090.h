@@ -58,10 +58,12 @@
     #include <sys/stat.h>
     #include <sys/ioctl.h>
     #include "rtl-sdr.h"
+    #include "hackrf.h"
     #include "anet.h"
 #else
     #include "winstubs.h" //Put everything Windows specific in here
     #include "rtl-sdr.h"
+    #include "hackrf.h"
     #include "anet.h"
 #endif
 
@@ -90,6 +92,10 @@
 #define MODES_MAX_GAIN             999999                     // Use max available gain
 #define MODES_MSG_SQUELCH_LEVEL    0x02FF                     // Average signal strength limit
 #define MODES_MSG_ENCODER_ERRS     3                          // Maximum number of encoding errors
+// HackRF One Defaults
+#define MODES_ENABLE_AMP           0
+#define MODES_LNA_GAIN             40
+#define MODES_VGA_GAIN             62
 
 // When changing, change also fixBitErrors() and modesInitErrorTable() !!
 #define MODES_MAX_BITERRORS        2                          // Global max for fixable bit erros
@@ -260,10 +266,20 @@ struct {                             // Internal state
     int             exit;            // Exit from the main loop when true
 
     // RTLSDR
+    int           rtl_enabled;
     int           dev_index;
     int           gain;
     int           enable_agc;
     rtlsdr_dev_t *dev;
+
+    // HackRF One
+    int hackrf_enabled;
+    int enable_amp;
+    int lna_gain;
+    int vga_gain;
+    hackrf_device* hackrf;
+
+    // SDR Common
     int           freq;
     int           ppm_error;
 

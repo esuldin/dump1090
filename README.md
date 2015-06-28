@@ -1,7 +1,7 @@
 Dump1090 README
 ===
 
-Dump 1090 is a Mode S decoder specifically designed for RTLSDR devices.
+Dump 1090 is a Mode S decoder specifically designed for RTLSDR and HackRF One devices.
 
 The main features are:
 
@@ -21,6 +21,9 @@ The main features are:
 * CPR coordinates decoding and track calculation from velocity.
 * TCP server streaming and recceiving raw data to/from connected clients
   (using --net).
+
+This is a fork of Salvatore Sanfilippo's [original dump1090](https://github.com/antirez/dump1090)
+with additional HackRF support.
 
 Installation
 ---
@@ -60,14 +63,26 @@ To decode data from file, use:
 
     ./dump1090 --ifile /path/to/binfile
 
-The binary file should be created using `rtl_sdr` like this (or with any other
-program that is able to output 8-bit unsigned IQ samples at 2Mhz sample rate).
+The binary file can be created using `rtl_sdr` or `hackrf_transfer` (requires 
+conversion). File contents need to be 8-bit unsigned IQ samples at 2Mhz sample rate.
+
+Example with rtl_sdr:
 
     rtl_sdr -f 1090000000 -s 2000000 -g 50 output.bin
 
-In the example `rtl_sdr` a gain of 50 is used, simply you should use the highest
-gain availabe for your tuner. This is not needed when calling Dump1090 itself
-as it is able to select the highest gain supported automatically.
+In the example a gain of 50 is used, simply you should use the highest gain availabe
+for your tuner. This is not needed when calling Dump1090 itself as it is able to 
+select the highest gain supported automatically.
+
+Example with hackrf_transfer:
+
+    hackrf_transfer -r output.sb -f 1090000000 -s 2000000 -p 0 -a 0 -l 40 -g 62
+    sox -r 2000000 -c 1 output.sb output.ub
+
+In the example RX/TX RF amplifier is disabled, IF gain is set 40dB and baseband gain 
+is set to 62dB (maximum values). As opposed to RTL SDR devices, HackRF returns signed 
+IQ values, so [SoX](http://sox.sourceforge.net/) is used to convert them to unsigned
+IQ values. 
 
 It is possible to feed the program with data via standard input using
 the --ifile option with "-" as argument.
@@ -281,4 +296,5 @@ Credits
 ---
 
 Dump1090 was written by Salvatore Sanfilippo <antirez@gmail.com> and is
-released under the BSD three clause license.
+released under the BSD three clause license. HackRF One support is added by
+Ilker Temir <ilker@ilkertemir.com>.

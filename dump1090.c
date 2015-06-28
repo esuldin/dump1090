@@ -1,6 +1,7 @@
 // dump1090, a Mode S messages decoder for RTLSDR devices.
 //
 // Copyright (C) 2012 by Salvatore Sanfilippo <antirez@gmail.com>
+// HackRF One support added by Ilker Temir <ilker@ilkertemir.com>
 //
 // All rights reserved.
 //
@@ -67,6 +68,8 @@ void modesInitConfig(void) {
 
     // Now initialise things that should not be 0/NULL to their defaults
     Modes.gain                    = MODES_MAX_GAIN;
+    Modes.lna_gain                = MODES_LNA_GAIN;
+    Modes.vga_gain                = MODES_VGA_GAIN;
     Modes.freq                    = MODES_DEFAULT_FREQ;
     Modes.ppm_error               = MODES_DEFAULT_PPM;
     Modes.check_crc               = 1;
@@ -191,7 +194,7 @@ void modesInit(void) {
 //
 // =============================== RTLSDR handling ==========================
 //
-void modesInitRTLSDR(void) {
+int modesInitRTLSDR(void) {
     int j;
     int device_count;
     char vendor[256], product[256], serial[256];
@@ -199,7 +202,7 @@ void modesInitRTLSDR(void) {
     device_count = rtlsdr_get_device_count();
     if (!device_count) {
         fprintf(stderr, "No supported RTLSDR devices found.\n");
-        exit(1);
+        return(1);
     }
 
     fprintf(stderr, "Found %d device(s):\n", device_count);
@@ -212,7 +215,7 @@ void modesInitRTLSDR(void) {
     if (rtlsdr_open(&Modes.dev, Modes.dev_index) < 0) {
         fprintf(stderr, "Error opening the RTLSDR device: %s\n",
             strerror(errno));
-        exit(1);
+        return(1);
     }
 
     // Set gain, frequency, sample rate, and reset the device
@@ -240,6 +243,9 @@ void modesInitRTLSDR(void) {
     rtlsdr_reset_buffer(Modes.dev);
     fprintf(stderr, "Gain reported by device: %.2f\n",
         rtlsdr_get_tuner_gain(Modes.dev)/10.0);
+    Modes.rtl_enabled = 1;
+    Modes.hackrf_enabled = 0;
+    return (0);
 }
 //
 //=========================================================================
@@ -285,6 +291,82 @@ void rtlsdrCallback(unsigned char *buf, uint32_t len, void *ctx) {
     // Signal to the other thread that new data is ready, and unlock
     pthread_cond_signal(&Modes.data_cond);
     pthread_mutex_unlock(&Modes.data_mutex);
+}
+
+// =============================== HackRF One handling ==========================
+int modesInitHackRF(void) {
+    #define HACKRF_STATUS(status, message) \
+        if (status != 0) { \
+            fprintf(stderr, "%s\n", message); \
+            hackrf_close(Modes.hackrf); \
+            hackrf_exit(); \
+            return (1); \
+        } \
+
+    int status;
+
+    status = hackrf_init();
+    HACKRF_STATUS(status, "hackrf_init failed.");
+
+    status = hackrf_open(&Modes.hackrf);
+    HACKRF_STATUS(status, "No HackRF compatible devices found.");
+
+    status = hackrf_set_freq(Modes.hackrf, Modes.freq);
+    HACKRF_STATUS(status, "hackrf_set_freq failed.");
+
+    status = hackrf_set_sample_rate(Modes.hackrf, MODES_DEFAULT_RATE);
+    HACKRF_STATUS(status, "hackrf_set_sample_rate failed.");
+
+    status = hackrf_set_amp_enable(Modes.hackrf, Modes.enable_amp);
+    HACKRF_STATUS(status, "hackrf_set_amp_enable failed.");
+
+    status = hackrf_set_lna_gain(Modes.hackrf, Modes.lna_gain);
+    HACKRF_STATUS(status, "hackrf_set_lna_gain failed.");
+
+    status = hackrf_set_vga_gain(Modes.hackrf, Modes.vga_gain);
+    HACKRF_STATUS(status, "hackrf_set_vga_gain failed");
+
+    fprintf (stderr, "HackRF successfully initialized "
+                     "(AMP Enable: %i, LNA Gain: %i, VGA Gain: %i).\n",
+                     Modes.enable_amp, Modes.lna_gain, Modes.vga_gain);
+
+    Modes.hackrf_enabled = 1;
+    Modes.rtl_enabled = 0;
+
+    return (0);
+}
+
+int hackrfCallback (hackrf_transfer *transfer) {
+    pthread_mutex_lock(&Modes.data_mutex);
+    uint32_t len = transfer-> buffer_length;
+
+    // HackRF One returns signed IQ values, convert them to unsigned
+    for (uint32_t i = 0; i < len; i++) {
+        transfer->buffer[i] ^= (uint8_t)0x80;
+    }
+
+    if (len > MODES_ASYNC_BUF_SIZE) len = MODES_ASYNC_BUF_SIZE;
+
+    // Queue the new data
+    Modes.pData[Modes.iDataIn] = (uint16_t *)transfer->buffer;
+    Modes.iDataIn    = (MODES_ASYNC_BUF_NUMBER-1) & (Modes.iDataIn + 1);
+    Modes.iDataReady = (MODES_ASYNC_BUF_NUMBER-1) & (Modes.iDataIn - Modes.iDataOut);
+
+    if (Modes.iDataReady == 0) {
+      // Ooooops. We've just received the MODES_ASYNC_BUF_NUMBER'th outstanding buffer
+      // This means that RTLSDR is currently overwriting the MODES_ASYNC_BUF_NUMBER+1
+      // buffer, but we havent yet processed it, so we're going to lose it. There
+      // isn't much we can do to recover the lost data, but we can correct things to
+      // avoid any additional problems.
+      Modes.iDataOut   = (MODES_ASYNC_BUF_NUMBER-1) & (Modes.iDataOut+1);
+      Modes.iDataReady = (MODES_ASYNC_BUF_NUMBER-1);
+      Modes.iDataLost++;
+    }
+ 
+    // Signal to the other thread that new data is ready, and unlock
+    pthread_cond_signal(&Modes.data_cond);
+    pthread_mutex_unlock(&Modes.data_mutex);
+    return (0);
 }
 //
 //=========================================================================
@@ -351,9 +433,20 @@ void *readerThreadEntryPoint(void *arg) {
     MODES_NOTUSED(arg);
 
     if (Modes.filename == NULL) {
-        rtlsdr_read_async(Modes.dev, rtlsdrCallback, NULL,
+        if (Modes.rtl_enabled) {
+            rtlsdr_read_async(Modes.dev, rtlsdrCallback, NULL,
                               MODES_ASYNC_BUF_NUMBER,
                               MODES_ASYNC_BUF_SIZE);
+        } 
+        else if (Modes.hackrf_enabled) {
+            int status = hackrf_start_rx(Modes.hackrf, hackrfCallback, NULL);
+            if (status != 0) { 
+                fprintf(stderr, "hackrf_start_rx failed"); 
+                hackrf_close(Modes.hackrf); 
+                hackrf_exit(); 
+                exit (1); 
+            } 
+        }       
     } else {
         readDataFromFile();
     }
@@ -396,8 +489,11 @@ void showHelp(void) {
 "|                        dump1090 ModeS Receiver         Ver : " MODES_DUMP1090_VERSION " |\n"
 "-----------------------------------------------------------------------------\n"
 "--device-index <index>   Select RTL device (default: 0)\n"
-"--gain <db>              Set gain (default: max gain. Use -10 for auto-gain)\n"
-"--enable-agc             Enable the Automatic Gain Control (default: off)\n"
+"--gain <db>              Set RTLSDR gain (default: max gain. Use -100 for auto-gain).\n"
+"--enable-agc             Enable RTLSDR Automatic Gain Control (default: off).\n"
+"--enable-amp             Enable HackRF RX/TX RF amplifier (default: off).\n"
+"--lna-gain               Set HackRF RX LNA (IF) gain, 0-40dB, 8dB steps (default: 40).\n"
+"--vga-gain               Set HackRF RX VGA (baseband) gain, 0-62dB, 2dB steps (default: 62).\n"
 "--freq <hz>              Set frequency (default: 1090 Mhz)\n"
 "--ifile <filename>       Read data from file (use '-' for stdin)\n"
 "--interactive            Interactive mode refreshing data on screen\n"
@@ -677,6 +773,12 @@ int main(int argc, char **argv) {
             Modes.gain = (int) (atof(argv[++j])*10); // Gain is in tens of DBs
         } else if (!strcmp(argv[j],"--enable-agc")) {
             Modes.enable_agc++;
+        } else if (!strcmp(argv[j],"--enable-amp")) {
+            Modes.enable_amp = 1;
+        } else if (!strcmp(argv[j],"--lna-gain")) {
+            Modes.lna_gain =  atoi(argv[++j]);
+        } else if (!strcmp(argv[j],"--vga-gain")) {
+            Modes.vga_gain =  atoi(argv[++j]);
         } else if (!strcmp(argv[j],"--freq") && more) {
             Modes.freq = (int) strtoll(argv[++j],NULL,10);
         } else if (!strcmp(argv[j],"--ifile") && more) {
@@ -803,7 +905,13 @@ int main(int argc, char **argv) {
     if (Modes.net_only) {
         fprintf(stderr,"Net-only mode, no RTL device or file open.\n");
     } else if (Modes.filename == NULL) {
-        modesInitRTLSDR();
+        if ( modesInitRTLSDR() ) {
+            // No RTLSDR found, check for HackRF One
+            if ( modesInitHackRF() ) {
+                //fprintf(stderr,"You need a compatible SDR device.\n");
+                exit (1);
+            }
+        }
     } else {
         if (Modes.filename[0] == '-' && Modes.filename[1] == '\0') {
             Modes.fd = STDIN_FILENO;
