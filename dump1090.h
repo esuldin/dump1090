@@ -94,8 +94,8 @@
 #define MODES_MSG_ENCODER_ERRS     3                          // Maximum number of encoding errors
 // HackRF One Defaults
 #define MODES_ENABLE_AMP           0
-#define MODES_LNA_GAIN             40
-#define MODES_VGA_GAIN             62
+#define MODES_LNA_GAIN             32
+#define MODES_VGA_GAIN             48
 
 // When changing, change also fixBitErrors() and modesInitErrorTable() !!
 #define MODES_MAX_BITERRORS        2                          // Global max for fixable bit erros
