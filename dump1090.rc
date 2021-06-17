@@ -31,8 +31,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,10,2910,14
- PRODUCTVERSION 1,10,2910,14
+ FILEVERSION 1,10,1706,21
+ PRODUCTVERSION 1,10,1706,21
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -49,15 +49,15 @@ BEGIN
         BEGIN
             VALUE "Comments", "Dump1090 for Win32 \0"
             VALUE "CompanyName", "\0"
-            VALUE "FileDescription", "Mode A/C/S decoder for RTL Dongles\0"
-            VALUE "FileVersion", "1, 10, 2910, 14\0"
+            VALUE "FileDescription", "Mode A/C/S decoder for RTL-SDR and HackRF devices\0"
+            VALUE "FileVersion", "1, 10, 1706, 21\0"
             VALUE "InternalName", "DUMP1090.EXE\0"
-            VALUE "LegalCopyright", "Copyright © 2012 by Salvatore Sanfilippo <antirez@gmail.com>\r\nCopyright © 2014 by Malcolm Robb <support@attavionics.com>\0"
+            VALUE "LegalCopyright", "Copyright © 2006-2012, by Salvatore Sanfilippo <antirez@gmail.com>\r\nCopyright © 2013-2014, by Malcolm Robb <support@attavionics.com>\r\nCopyright © 2013-2015, by Ilker Temir <ilker@ilkertemir.com>\r\nCopyright © 2021, by Egor Suldin < rd3tap@yandex.ru>\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "DUMP1090.EXE\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "DUMP1090\0"
-            VALUE "ProductVersion", "1, 10, 2910, 14\0"
+            VALUE "ProductVersion", "1, 10, 1706, 21\0"
             VALUE "SpecialBuild", "\0"
         END
     END

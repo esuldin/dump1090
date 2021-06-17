@@ -1,7 +1,8 @@
+
 Dump1090 README
 ===
 
-Dump 1090 is a Mode S decoder specifically designed for RTLSDR and HackRF One devices.
+Dump 1090 is a Mode S decoder specifically designed for RTL-SDR and HackRF One devices.
 
 The main features are:
 
@@ -19,11 +20,10 @@ The main features are:
 * Interactive command-line-interfae mode where aircrafts currently detected
   are shown as a list refreshing as more data arrives.
 * CPR coordinates decoding and track calculation from velocity.
-* TCP server streaming and recceiving raw data to/from connected clients
+* TCP server streaming and receiving raw data to/from connected clients
   (using --net).
 
-This is a fork of Salvatore Sanfilippo's [original dump1090](https://github.com/antirez/dump1090)
-with additional HackRF support.
+This is a fork of Malcolm Robb's [dump1090](https://github.com/MalcolmRobb/dump1090) with additional HackRF support. This fork can be build on POSIX complaint systems and Windows.
 
 Installation
 ---
@@ -33,7 +33,7 @@ Type "make".
 Normal usage
 ---
 
-To capture traffic directly from your RTL device and show the captured traffic
+To capture traffic directly from your device and show the captured traffic
 on standard output, just run the program without options at all:
 
     ./dump1090
@@ -51,7 +51,7 @@ with your browser to http://localhost:8080 to see live traffic:
 
     ./dump1090 --interactive --net
 
-In iteractive mode it is possible to have a less information dense but more
+In interactive mode it is possible to have a less information dense but more
 "arcade style" output, where the screen is refreshed every second displaying
 all the recently seen aircrafts with some additional information such as
 altitude and flight number, extracted from the received Mode S packets.
@@ -70,7 +70,7 @@ Example with rtl_sdr:
 
     rtl_sdr -f 1090000000 -s 2000000 -g 50 output.bin
 
-In the example a gain of 50 is used, simply you should use the highest gain availabe
+In the example a gain of 50 is used, simply you should use the highest gain available
 for your tuner. This is not needed when calling Dump1090 itself as it is able to 
 select the highest gain supported automatically.
 
@@ -80,9 +80,9 @@ Example with hackrf_transfer:
     sox -r 2000000 -c 1 output.sb output.ub
 
 In the example RX/TX RF amplifier is disabled, IF gain is set to 40dB and baseband
-gain is set to 62dB (maximum values). As opposed to RTL SDR devices, HackRF returns
+gain is set to 62dB (maximum values). As opposed to RTL-SDR devices, HackRF One returns
 signed IQ values, so [SoX](http://sox.sourceforge.net/) is used to convert them to 
-unsigned IQ values. 
+unsigned IQ values.
 
 It is possible to feed the program with data via standard input using
 the --ifile option with "-" as argument.
@@ -159,7 +159,7 @@ It is important to note that what is received via port 30001 is also
 broadcasted to clients listening to port 30002.
 
 In general everything received from port 30001 is handled exactly like the
-normal traffic from RTL devices or from file when --ifile is used.
+normal traffic from the device or from file when --ifile is used.
 
 It is possible to use Dump1090 just as an hub using --ifile with /dev/zero
 as argument as in the following example:
@@ -186,11 +186,11 @@ This can be used to feed data to various sharing sites without the need to use a
 Antenna
 ---
 
-Mode S messages are transmitted in the 1090 Mhz frequency. If you have a decent
+Mode S messages are transmitted in the 1090 MHz frequency. If you have a decent
 antenna you'll be able to pick up signals from aircrafts pretty far from your
 position, especially if you are outdoor and in a position with a good sky view.
 
-You can easily build a very cheap antenna following the istructions at:
+You can easily build a very cheap antenna following the instructions at:
 
     http://antirez.com/news/46
 
@@ -200,27 +200,27 @@ away from me.
 If you are interested in a more serious antenna check the following
 resources:
 
-* http://gnuradio.org/redmine/attachments/download/246/06-foster-adsb.pdf
+* [http://gnuradio.org/redmine/attachments/download/246/06-foster-adsb.pdf](https://web.archive.org/web/20140810055152/http://gnuradio.org/redmine/attachments/download/246/06-foster-adsb.pdf)
 * http://www.lll.lu/~edward/edward/adsb/antenna/ADSBantenna.html
-* http://modesbeast.com/pix/adsb-ant-drawing.gif
+* [http://modesbeast.com/pix/adsb-ant-drawing.gif](https://web.archive.org/web/20130926203634/http://modesbeast.com/pix/adsb-ant-drawing.gif)
 
 Aggressive mode
 ---
 
 With --aggressive it is possible to activate the *aggressive mode* that is a
 modified version of the Mode S packet detection and decoding.
-The aggresive mode uses more CPU usually (especially if there are many planes
+The aggressive mode uses more CPU usually (especially if there are many planes
 sending DF17 packets), but can detect a few more messages.
 
 The algorithm in aggressive mode is modified in the following ways:
 
-* Up to two demodulation errors are tolerated (adjacent entires in the
+* Up to two demodulation errors are tolerated (adjacent entries in the
   magnitude vector with the same eight). Normally only messages without
   errors are checked.
 * It tries to fix DF17 messages with CRC errors resulting from any two bit
   errors.
 
-The use of aggressive mdoe is only advised in places where there is
+The use of aggressive mode is only advised in places where there is
 low traffic in order to have a chance to capture some more messages.
 
 Debug mode
@@ -230,7 +230,7 @@ The Debug mode is a visual help to improve the detection algorithm or to
 understand why the program is not working for a given input.
 
 In this mode messages are displayed in an ASCII-art style graphical
-representation, where the individial magnitude bars sampled at 2Mhz are
+representation, where the individual magnitude bars sampled at 2Mhz are
 displayed.
 
 An index shows the sample number, where 0 is the sample where the first
@@ -258,10 +258,11 @@ based on how the messages look graphically.
 How to test the program?
 ---
 
-If you have an RTLSDR device and you happen to be in an area where there
-are aircrafts flying over your head, just run the program and check for signals.
+If you have an RTL-SDR device or an HackRF One device and you happen to be
+in an area where there are aircrafts flying over your head, just run the program
+and check for signals.
 
-However if you don't have an RTLSDR device, or if in your area the presence
+However if you don't have the compatible device, or if in your area the presence
 of aircrafts is very limited, you may want to try the sample file distributed
 with the Dump1090 distribution under the "testfiles" directory.
 
@@ -288,7 +289,7 @@ Contributing
 
 Dump1090 was written during some free time during xmas 2012, it is an hobby
 project so I'll be able to address issues and improve it only during
-free time, however you are incouraged to send pull requests in order to
+free time, however you are encouraged to send pull requests in order to
 improve the program. A good starting point can be the TODO list included in
 the source distribution.
 
@@ -296,5 +297,6 @@ Credits
 ---
 
 Dump1090 was written by Salvatore Sanfilippo <antirez@gmail.com> and is
-released under the BSD three clause license. HackRF One support is added by
-Ilker Temir <ilker@ilkertemir.com>.
+released under the BSD three clause license. Initial Windows support and
+other changes have been added by Malcolm Robb <support@attavionics.com>.
+HackRF One support has been added by Ilker Temir <ilker@ilkertemir.com>.
