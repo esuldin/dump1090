@@ -72,10 +72,10 @@ void modesInitNet(void) {
     Modes.clients = NULL;
 
 #ifdef _WIN32
-    if ( (!Modes.wsaData.wVersion) 
+    if ( (!Modes.wsaData.wVersion)
       && (!Modes.wsaData.wHighVersion) ) {
       // Try to start the windows socket support
-      if (WSAStartup(MAKEWORD(2,1),&Modes.wsaData) != 0) 
+      if (WSAStartup(MAKEWORD(2,1),&Modes.wsaData) != 0)
         {
         fprintf(stderr, "WSAStartup returned Error\n");
         }
@@ -196,7 +196,7 @@ void modesSendAllClients(int service, void *msg, int len) {
     struct client *c = Modes.clients;
 
     while (c) {
-        // Read next before servicing client incase the service routine deletes the client! 
+        // Read next before servicing client incase the service routine deletes the client!
         struct client *next = c->next;
 
         if (c->fd != -1) {
@@ -250,7 +250,7 @@ void modesSendBeastOutput(struct modesMessage *mm) {
 
     for (j = 0; j < msgLen; j++) {
         *p++ = (ch = mm->msg[j]);
-        if (0x1A == ch) {*p++ = ch; iOutLen++;} 
+        if (0x1A == ch) {*p++ = ch; iOutLen++;}
     }
 
     Modes.beastOutUsed +=  iOutLen;
@@ -349,7 +349,7 @@ void modesSendSBSOutput(struct modesMessage *mm) {
     }
 
     // Fields 1 to 6 : SBS message type and ICAO address of the aircraft and some other stuff
-    p += sprintf(p, "MSG,%d,111,11111,%06X,111111,", msgType, mm->addr); 
+    p += sprintf(p, "MSG,%d,111,11111,%06X,111111,", msgType, mm->addr);
 
     // Find current system time
     ftime(&epocTime_now);                                         // get the current system time & date
@@ -396,10 +396,10 @@ void modesSendSBSOutput(struct modesMessage *mm) {
     if (mm->bFlags & MODES_ACFLAGS_SPEED_VALID) {
         p += sprintf(p, ",%d", mm->velocity);
     } else {
-        p += sprintf(p, ","); 
+        p += sprintf(p, ",");
     }
 
-    // Field 14 is the ground Heading (if we have it)       
+    // Field 14 is the ground Heading (if we have it)
     if (mm->bFlags & MODES_ACFLAGS_HEADING_VALID) {
         p += sprintf(p, ",%d", mm->heading);
     } else {
@@ -497,7 +497,7 @@ int decodeBinMessage(struct client *c, char *p) {
     memset(&mm, 0, sizeof(mm));
 
     ch = *p++; /// Get the message type
-    if (0x1A == ch) {p++;} 
+    if (0x1A == ch) {p++;}
 
     if       ((ch == '1') && (Modes.mode_ac)) { // skip ModeA/C unless user enables --modes-ac
         msgLen = MODEAC_MSG_BYTES;
@@ -514,7 +514,7 @@ int decodeBinMessage(struct client *c, char *p) {
 
         ptr = (char*) &mm.timestampMsg;
         for (j = 0; j < 6; j++) { // Grab the timestamp (big endian format)
-            ptr[5-j] = ch = *p++; 
+            ptr[5-j] = ch = *p++;
             if (0x1A == ch) {p++;}
         }
 
@@ -553,13 +553,13 @@ int hexDigitVal(int c) {
 //
 // This function decodes a string representing message in raw hex format
 // like: *8D4B969699155600E87406F5B69F; The string is null-terminated.
-// 
+//
 // The message is passed to the higher level layers, so it feeds
 // the selected screen output, the network output and so forth.
-// 
+//
 // If the message looks invalid it is silently discarded.
 //
-// The function always returns 0 (success) to the caller as there is no 
+// The function always returns 0 (success) to the caller as there is no
 // case where we want broken messages here to close the client connection.
 //
 int decodeHexMessage(struct client *c, char *hex) {
@@ -608,13 +608,13 @@ int decodeHexMessage(struct client *c, char *hex) {
             break;}
     }
 
-    if ( (l != (MODEAC_MSG_BYTES      * 2)) 
-      && (l != (MODES_SHORT_MSG_BYTES * 2)) 
+    if ( (l != (MODEAC_MSG_BYTES      * 2))
+      && (l != (MODES_SHORT_MSG_BYTES * 2))
       && (l != (MODES_LONG_MSG_BYTES  * 2)) )
         {return (0);} // Too short or long message... broken
 
-    if ( (0 == Modes.mode_ac) 
-      && (l == (MODEAC_MSG_BYTES * 2)) ) 
+    if ( (0 == Modes.mode_ac)
+      && (l == (MODEAC_MSG_BYTES * 2)) )
         {return (0);} // Right length for ModeA/C, but not enabled
 
     for (j = 0; j < l; j += 2) {
@@ -660,11 +660,11 @@ char *aircraftsToJson(int *len) {
         if (a->bFlags & MODES_ACFLAGS_LATLON_VALID) {
             position = 1;
         }
-        
+
         if (a->bFlags & MODES_ACFLAGS_HEADING_VALID) {
             track = 1;
         }
-        
+
         // No metric conversion
         l = snprintf(p,buflen,
             "{\"hex\":\"%06x\", \"squawk\":\"%04x\", \"flight\":\"%s\", \"lat\":%f, "
@@ -673,7 +673,7 @@ char *aircraftsToJson(int *len) {
             a->addr, a->modeA, a->flight, a->lat, a->lon, position, a->altitude, a->vert_rate, a->track, track,
             a->speed, a->messages, (int)(now - a->seen));
         p += l; buflen -= l;
-        
+
         //Resize if needed
         if (buflen < 256) {
             int used = p-buf;
@@ -681,7 +681,7 @@ char *aircraftsToJson(int *len) {
             buf = (char *) realloc(buf,used+buflen);
             p = buf+used;
         }
-        
+
         a = a->next;
     }
 
@@ -749,7 +749,7 @@ int handleHTTPRequest(struct client *c, char *p) {
         printf("\nHTTP keep alive: %d\n", keepalive);
         printf("HTTP requested URL: %s\n\n", url);
     }
-    
+
     if (strlen(url) < 2) {
         snprintf(getFile, sizeof getFile, "%s/gmap.html", HTMLPATH); // Default file
     } else {
@@ -790,7 +790,7 @@ int handleHTTPRequest(struct client *c, char *p) {
             clen = snprintf(content, 128,"Error opening HTML file: %s", strerror(errno));
             statuscode = 404;
         }
-        
+
         if (fd != -1) {
             close(fd);
         }
@@ -831,10 +831,10 @@ int handleHTTPRequest(struct client *c, char *p) {
 
     // Send header and content.
 #ifndef _WIN32
-    if ( (write(c->fd, hdr, hdrlen) != hdrlen) 
+    if ( (write(c->fd, hdr, hdrlen) != hdrlen)
       || (write(c->fd, content, clen) != clen) ) {
 #else
-    if ( (send(c->fd, hdr, hdrlen, 0) != hdrlen) 
+    if ( (send(c->fd, hdr, hdrlen, 0) != hdrlen)
       || (send(c->fd, content, clen, 0) != clen) ) {
 #endif
         free(content);
@@ -988,7 +988,7 @@ void modesReadFromClients(void) {
     struct client *c = modesAcceptClients();
 
     while (c) {
-            // Read next before servicing client incase the service routine deletes the client! 
+            // Read next before servicing client incase the service routine deletes the client!
             struct client *next = c->next;
 
         if (c->fd >= 0) {

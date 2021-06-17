@@ -42,20 +42,20 @@ void sigintHandler(int dummy) {
 //
 #ifndef _WIN32
 // Get the number of rows after the terminal changes size.
-int getTermRows() { 
-    struct winsize w; 
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w); 
-    return (w.ws_row); 
-} 
+int getTermRows() {
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    return (w.ws_row);
+}
 
 // Handle resizing terminal
 void sigWinchCallback() {
     signal(SIGWINCH, SIG_IGN);
     Modes.interactive_rows = getTermRows();
     interactiveShowData();
-    signal(SIGWINCH, sigWinchCallback); 
+    signal(SIGWINCH, sigWinchCallback);
 }
-#else 
+#else
 int getTermRows() { return MODES_INTERACTIVE_ROWS;}
 #endif
 //
@@ -68,7 +68,7 @@ void view1090InitConfig(void) {
 
     // Now initialise things that should not be 0/NULL to their defaults
     Modes.check_crc               = 1;
-    strcpy(View1090.net_input_beast_ipaddr,VIEW1090_NET_OUTPUT_IP_ADDRESS); 
+    strcpy(View1090.net_input_beast_ipaddr,VIEW1090_NET_OUTPUT_IP_ADDRESS);
     Modes.net_input_beast_port    = MODES_NET_OUTPUT_BEAST_PORT;
     Modes.interactive_rows        = getTermRows();
     Modes.interactive_delete_ttl  = MODES_INTERACTIVE_DELETE_TTL;
@@ -88,10 +88,10 @@ void view1090Init(void) {
     pthread_cond_init(&Modes.data_cond,NULL);
 
 #ifdef _WIN32
-    if ( (!Modes.wsaData.wVersion) 
+    if ( (!Modes.wsaData.wVersion)
       && (!Modes.wsaData.wHighVersion) ) {
       // Try to start the windows socket support
-      if (WSAStartup(MAKEWORD(2,1),&Modes.wsaData) != 0) 
+      if (WSAStartup(MAKEWORD(2,1),&Modes.wsaData) != 0)
         {
         fprintf(stderr, "WSAStartup returned Error\n");
         }
@@ -110,17 +110,17 @@ void view1090Init(void) {
 
     // Validate the users Lat/Lon home location inputs
     if ( (Modes.fUserLat >   90.0)  // Latitude must be -90 to +90
-      || (Modes.fUserLat <  -90.0)  // and 
+      || (Modes.fUserLat <  -90.0)  // and
       || (Modes.fUserLon >  360.0)  // Longitude must be -180 to +360
       || (Modes.fUserLon < -180.0) ) {
         Modes.fUserLat = Modes.fUserLon = 0.0;
     } else if (Modes.fUserLon > 180.0) { // If Longitude is +180 to +360, make it -180 to 0
         Modes.fUserLon -= 360.0;
     }
-    // If both Lat and Lon are 0.0 then the users location is either invalid/not-set, or (s)he's in the 
-    // Atlantic ocean off the west coast of Africa. This is unlikely to be correct. 
-    // Set the user LatLon valid flag only if either Lat or Lon are non zero. Note the Greenwich meridian 
-    // is at 0.0 Lon,so we must check for either fLat or fLon being non zero not both. 
+    // If both Lat and Lon are 0.0 then the users location is either invalid/not-set, or (s)he's in the
+    // Atlantic ocean off the west coast of Africa. This is unlikely to be correct.
+    // Set the user LatLon valid flag only if either Lat or Lon are non zero. Note the Greenwich meridian
+    // is at 0.0 Lon,so we must check for either fLat or fLon being non zero not both.
     // Testing the flag at runtime will be much quicker than ((fLon != 0.0) || (fLat != 0.0))
     Modes.bUserFlags &= ~MODES_USER_LATLON_VALID;
     if ((Modes.fUserLat != 0.0) || (Modes.fUserLon != 0.0)) {
@@ -141,17 +141,17 @@ int setupConnection(struct client *c) {
 		//
 		// Setup a service callback client structure for a beast binary input (from dump1090)
 		// This is a bit dodgy under Windows. The fd parameter is a handle to the internet
-		// socket on which we are receiving data. Under Linux, these seem to start at 0 and 
+		// socket on which we are receiving data. Under Linux, these seem to start at 0 and
 		// count upwards. However, Windows uses "HANDLES" and these don't nececeriy start at 0.
-		// dump1090 limits fd to values less than 1024, and then uses the fd parameter to 
+		// dump1090 limits fd to values less than 1024, and then uses the fd parameter to
 		// index into an array of clients. This is ok-ish if handles are allocated up from 0.
-		// However, there is no gaurantee that Windows will behave like this, and if Windows 
-		// allocates a handle greater than 1024, then dump1090 won't like it. On my test machine, 
+		// However, there is no gaurantee that Windows will behave like this, and if Windows
+		// allocates a handle greater than 1024, then dump1090 won't like it. On my test machine,
 		// the first Windows handle is usually in the 0x54 (84 decimal) region.
 
 		c->next    = NULL;
 		c->buflen  = 0;
-		c->fd      = 
+		c->fd      =
 		c->service =
 		Modes.bis  = fd;
 		Modes.clients = c;
@@ -210,7 +210,7 @@ void showCopyright(void) {
 " (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n"
 " OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n"
 "\n"
-" For further details refer to <https://github.com/MalcolmRobb/dump1090>\n" 
+" For further details refer to <https://github.com/MalcolmRobb/dump1090>\n"
 "\n"
     );
 

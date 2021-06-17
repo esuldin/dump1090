@@ -28,10 +28,10 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // This file provides basic Windows implementation of Linux specific functions
-// used in the dump1090 project. This allows dump1090 to be compiled and debugged 
+// used in the dump1090 project. This allows dump1090 to be compiled and debugged
 // using Microsoft Visual C++ 6.0
 //
-// Note that not all functions actually provide equivalent functionality to their 
+// Note that not all functions actually provide equivalent functionality to their
 // Linux equivalents. They are simply stubs to allow the project to compile.
 //
 #ifndef __WINSTUBS_H
@@ -93,7 +93,7 @@ _inline int gettimeofday(struct timeval *tv, struct timezone *tz) {
   tv->tv_usec = stSystemTime.wMilliseconds * 1000;
 
   return 0;
-  } 
+  }
 
 #define STDIN_FILENO 0
 

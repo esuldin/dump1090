@@ -404,11 +404,11 @@ struct {                             // Internal state
 struct modesMessage {
     // Generic fields
     unsigned char msg[MODES_LONG_MSG_BYTES];      // Binary message.
-    int           msgbits;                        // Number of bits in message 
+    int           msgbits;                        // Number of bits in message
     int           msgtype;                        // Downlink format #
     int           crcok;                          // True if CRC was valid
     uint32_t      crc;                            // Message CRC
-    int           correctedbits;                  // No. of bits corrected 
+    int           correctedbits;                  // No. of bits corrected
     char          corrected[MODES_MAX_BITERRORS]; // corrected bit positions
     uint32_t      addr;                           // ICAO Address from bytes 1 2 and 3
     int           phase_corrected;                // True if phase correction was applied
@@ -440,7 +440,7 @@ struct modesMessage {
 
     // Fields used by multiple message types.
     int  altitude;
-    int  unit; 
+    int  unit;
     int  bFlags;                // Flags related to fields in this structure
 };
 

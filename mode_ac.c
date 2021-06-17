@@ -33,8 +33,8 @@
 // ===================== Mode A/C detection and decoding  ===================
 //
 //
-// This table is used to build the Mode A/C variable called ModeABits.Each 
-// bit period is inspected, and if it's value exceeds the threshold limit, 
+// This table is used to build the Mode A/C variable called ModeABits.Each
+// bit period is inspected, and if it's value exceeds the threshold limit,
 // then the value in this table is or-ed into ModeABits.
 //
 // At the end of message processing, ModeABits will be the decoded ModeA value.
@@ -47,12 +47,12 @@ uint32_t ModeABitTable[24] = {
 0x00000000, // F1 = 1
 0x00000010, // C1
 0x00001000, // A1
-0x00000020, // C2 
+0x00000020, // C2
 0x00002000, // A2
 0x00000040, // C4
 0x00004000, // A4
 0x40000000, // xx = 0  Set bit 30 if we see this high
-0x00000100, // B1 
+0x00000100, // B1
 0x00000001, // D1
 0x00000200, // B2
 0x00000002, // D2
@@ -70,12 +70,12 @@ uint32_t ModeABitTable[24] = {
 0x00100000, // xx = 0  Set bit 20 if we see this high
 };
 //
-// This table is used to produce an error variable called ModeAErrs.Each 
-// inter-bit period is inspected, and if it's value falls outside of the 
+// This table is used to produce an error variable called ModeAErrs.Each
+// inter-bit period is inspected, and if it's value falls outside of the
 // expected range, then the value in this table is or-ed into ModeAErrs.
 //
-// At the end of message processing, ModeAErrs will indicate if we saw 
-// any inter-bit anomolies, and the bits that are set will show which 
+// At the end of message processing, ModeAErrs will indicate if we saw
+// any inter-bit anomolies, and the bits that are set will show which
 // bits had them.
 //
 uint32_t ModeAMidTable[24] = {
@@ -109,36 +109,36 @@ uint32_t ModeAMidTable[24] = {
 // _F1_C1_A1_C2_A2_C4_A4_xx_B1_D1_B2_D2_B4_D4_F2_xx_xx_SPI_
 //
 // Bit spacing is 1.45uS, with 0.45uS high, and 1.00us low. This is a problem
-// because we ase sampling at 2Mhz (500nS) so we are below Nyquist. 
+// because we ase sampling at 2Mhz (500nS) so we are below Nyquist.
 //
 // The bit spacings are..
-// F1 :  0.00,   
-//       1.45,  2.90,  4.35,  5.80,  7.25,  8.70, 
-// X  : 10.15, 
-//    : 11.60, 13.05, 14.50, 15.95, 17.40, 18.85, 
-// F2 : 20.30, 
-// X  : 21.75, 23.20, 24.65 
+// F1 :  0.00,
+//       1.45,  2.90,  4.35,  5.80,  7.25,  8.70,
+// X  : 10.15,
+//    : 11.60, 13.05, 14.50, 15.95, 17.40, 18.85,
+// F2 : 20.30,
+// X  : 21.75, 23.20, 24.65
 //
 // This equates to the following sample point centers at 2Mhz.
-// [ 0.0], 
-// [ 2.9], [ 5.8], [ 8.7], [11.6], [14.5], [17.4], 
-// [20.3], 
+// [ 0.0],
+// [ 2.9], [ 5.8], [ 8.7], [11.6], [14.5], [17.4],
+// [20.3],
 // [23.2], [26.1], [29.0], [31.9], [34.8], [37.7]
 // [40.6]
 // [43.5], [46.4], [49.3]
 //
 // We know that this is a supposed to be a binary stream, so the signal
-// should either be a 1 or a 0. Therefore, any energy above the noise level 
-// in two adjacent samples must be from the same pulse, so we can simply 
-// add the values together.. 
-// 
+// should either be a 1 or a 0. Therefore, any energy above the noise level
+// in two adjacent samples must be from the same pulse, so we can simply
+// add the values together..
+//
 int detectModeA(uint16_t *m, struct modesMessage *mm)
   {
   int j, lastBitWasOne;
   int ModeABits = 0;
   int ModeAErrs = 0;
   int byte, bit;
-  int thisSample, lastBit, lastSpace = 0; 
+  int thisSample, lastBit, lastSpace = 0;
   int m0, m1, m2, m3, mPhase;
   int n0, n1, n2 ,n3;
   int F1_sig, F1_noise;
@@ -155,15 +155,15 @@ int detectModeA(uint16_t *m, struct modesMessage *mm)
   //
   // The width of the frame bit is 450nS, which is 90% of our sample rate.
   // Therefore, in an ideal world, all the energy for the frame bit will be
-  // in a single sample, preceeded by (at least) one zero, and followed by 
+  // in a single sample, preceeded by (at least) one zero, and followed by
   // two zeros, Best case we can look for ...
   //
   // 0 - 1 - 0 - 0
   //
-  // However, our samples are not phase aligned, so some of the energy from 
+  // However, our samples are not phase aligned, so some of the energy from
   // each bit could be spread over two consecutive samples. Worst case is
-  // that we sample half in one bit, and half in the next. In that case, 
-  // we're looking for 
+  // that we sample half in one bit, and half in the next. In that case,
+  // we're looking for
   //
   // 0 - 0.5 - 0.5 - 0.
 
@@ -174,8 +174,8 @@ int detectModeA(uint16_t *m, struct modesMessage *mm)
 
   m2 = m[2]; m3 = m[3];
 
-  // 
-  // if (m2 <= m0), then assume the sample bob on (Phase == 0), so don't look at m3 
+  //
+  // if (m2 <= m0), then assume the sample bob on (Phase == 0), so don't look at m3
   if ((m2 <= m0) || (m2 < m3))
     {m3 = m2; m2 = m0;}
 
@@ -189,7 +189,7 @@ int detectModeA(uint16_t *m, struct modesMessage *mm)
   // m2 = noise + (signal * (1-X))
   // m3 = noise
   //
-  // Hence, assuming all 4 samples have similar amounts of noise in them 
+  // Hence, assuming all 4 samples have similar amounts of noise in them
   //      signal = (m1 + m2) - ((m0 + m3) * 2)
   //      noise  = (m0 + m3) / 2
   //
@@ -202,19 +202,19 @@ int detectModeA(uint16_t *m, struct modesMessage *mm)
 
   // If we get here then we have a potential F1, so look for an equally valid F2 20.3uS later
   //
-  // Our F1 is centered somewhere between samples m[1] and m[2]. We can guestimate where F2 is 
+  // Our F1 is centered somewhere between samples m[1] and m[2]. We can guestimate where F2 is
   // by comparing the ratio of m1 and m2, and adding on 20.3 uS (40.6 samples)
   //
   mPhase = ((m2 * 20) / (m1 + m2));
-  byte   = (mPhase + 812) / 20; 
-  n0     = m[byte++]; n1 = m[byte++]; 
+  byte   = (mPhase + 812) / 20;
+  n0     = m[byte++]; n1 = m[byte++];
 
   if (n0 >= n1)   // n1 *must* be bigger than n0 for this to be F2
     {return (0);}
 
   n2 = m[byte++];
-  // 
-  // if the sample bob on (Phase == 0), don't look at n3 
+  //
+  // if the sample bob on (Phase == 0), don't look at n3
   //
   if ((mPhase + 812) % 20)
     {n3 = m[byte++];}
@@ -247,16 +247,16 @@ int detectModeA(uint16_t *m, struct modesMessage *mm)
   for (j = 1, mPhase += 29; j < 48; mPhase += 29, j ++)
     {
     byte  = 1 + (mPhase / 20);
-    
+
     thisSample = m[byte] - fNoise;
     if (mPhase % 20)                     // If the bit is split over two samples...
       {thisSample += (m[byte+1] - fNoise);}  //    add in the second sample's energy
 
      // If we're calculating a space value
-    if (j & 1)               
+    if (j & 1)
       {lastSpace = thisSample;}
 
-    else 
+    else
       {// We're calculating a new bit value
       bit = j >> 1;
       if (thisSample >= fLevel)
@@ -269,7 +269,7 @@ int detectModeA(uint16_t *m, struct modesMessage *mm)
             {ModeAErrs |= ModeAMidTable[bit];}
           }
 
-        else              
+        else
           {// This bit,is one, last bit was zero, so check the last space is somewhere less than one
           if (lastSpace >= (thisSample >> 1))
             {ModeAErrs |= ModeAMidTable[bit];}
@@ -278,8 +278,8 @@ int detectModeA(uint16_t *m, struct modesMessage *mm)
         lastBitWasOne = 1;
         }
 
-      
-      else 
+
+      else
         {// We're calculating a new bit value, and its a zero
         if (lastBitWasOne)
           { // This bit is zero, last bit was one, so check the last space is somewhere in between
@@ -287,16 +287,16 @@ int detectModeA(uint16_t *m, struct modesMessage *mm)
             {ModeAErrs |= ModeAMidTable[bit];}
           }
 
-        else              
+        else
           {// This bit,is zero, last bit was zero, so check the last space is zero too
           if (lastSpace >= fLoLo)
             {ModeAErrs |= ModeAMidTable[bit];}
           }
 
-        lastBitWasOne = 0;   
+        lastBitWasOne = 0;
         }
 
-      lastBit = (thisSample >> 1); 
+      lastBit = (thisSample >> 1);
       }
     }
 
@@ -316,8 +316,8 @@ int detectModeA(uint16_t *m, struct modesMessage *mm)
 //
 // Input format is : 00:A4:A2:A1:00:B4:B2:B1:00:C4:C2:C1:00:D4:D2:D1
 //
-int ModeAToModeC(unsigned int ModeA) 
-  { 
+int ModeAToModeC(unsigned int ModeA)
+  {
   unsigned int FiveHundreds = 0;
   unsigned int OneHundreds  = 0;
 
@@ -329,12 +329,12 @@ int ModeAToModeC(unsigned int ModeA)
   if (ModeA & 0x0020) {OneHundreds ^= 0x003;} // C2
   if (ModeA & 0x0040) {OneHundreds ^= 0x001;} // C4
 
-  // Remove 7s from OneHundreds (Make 7->5, snd 5->7). 
+  // Remove 7s from OneHundreds (Make 7->5, snd 5->7).
   if ((OneHundreds & 5) == 5) {OneHundreds ^= 2;}
 
-  // Check for invalid codes, only 1 to 5 are valid 
+  // Check for invalid codes, only 1 to 5 are valid
   if (OneHundreds > 5)
-    {return -9999;} 
+    {return -9999;}
 
 //if (ModeA & 0x0001) {FiveHundreds ^= 0x1FF;} // D1 never used for altitude
   if (ModeA & 0x0002) {FiveHundreds ^= 0x0FF;} // D2
@@ -344,15 +344,15 @@ int ModeAToModeC(unsigned int ModeA)
   if (ModeA & 0x2000) {FiveHundreds ^= 0x01F;} // A2
   if (ModeA & 0x4000) {FiveHundreds ^= 0x00F;} // A4
 
-  if (ModeA & 0x0100) {FiveHundreds ^= 0x007;} // B1 
+  if (ModeA & 0x0100) {FiveHundreds ^= 0x007;} // B1
   if (ModeA & 0x0200) {FiveHundreds ^= 0x003;} // B2
   if (ModeA & 0x0400) {FiveHundreds ^= 0x001;} // B4
-    
-  // Correct order of OneHundreds. 
-  if (FiveHundreds & 1) {OneHundreds = 6 - OneHundreds;} 
 
-  return ((FiveHundreds * 5) + OneHundreds - 13); 
-  } 
+  // Correct order of OneHundreds.
+  if (FiveHundreds & 1) {OneHundreds = 6 - OneHundreds;}
+
+  return ((FiveHundreds * 5) + OneHundreds - 13);
+  }
 //
 //=========================================================================
 //

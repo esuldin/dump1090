@@ -140,8 +140,8 @@ struct aircraft *interactiveCreateAircraft(struct modesMessage *mm) {
     memset(a->signalLevel, mm->signalLevel, 8); // First time, initialise everything
                                                 // to the first signal strength
 
-    // mm->msgtype 32 is used to represent Mode A/C. These values can never change, so 
-    // set them once here during initialisation, and don't bother to set them every 
+    // mm->msgtype 32 is used to represent Mode A/C. These values can never change, so
+    // set them once here during initialisation, and don't bother to set them every
     // time this ModeA/C is received again in the future
     if (mm->msgtype == 32) {
         int modeC      = ModeAToModeC(mm->modeA | mm->fs);
@@ -173,33 +173,33 @@ struct aircraft *interactiveFindAircraft(uint32_t addr) {
 //
 //=========================================================================
 //
-// We have received a Mode A or C response. 
+// We have received a Mode A or C response.
 //
-// Search through the list of known Mode-S aircraft and tag them if this Mode A/C 
+// Search through the list of known Mode-S aircraft and tag them if this Mode A/C
 // matches their known Mode S Squawks or Altitudes(+/- 50feet).
 //
 // A Mode S equipped aircraft may also respond to Mode A and Mode C SSR interrogations.
 // We can't tell if this is a Mode A or C, so scan through the entire aircraft list
 // looking for matches on Mode A (squawk) and Mode C (altitude). Flag in the Mode S
-// records that we have had a potential Mode A or Mode C response from this aircraft. 
+// records that we have had a potential Mode A or Mode C response from this aircraft.
 //
-// If an aircraft responds to Mode A then it's highly likely to be responding to mode C 
+// If an aircraft responds to Mode A then it's highly likely to be responding to mode C
 // too, and vice verca. Therefore, once the mode S record is tagged with both a Mode A
 // and a Mode C flag, we can be fairly confident that this Mode A/C frame relates to that
 // Mode S aircraft.
 //
-// Mode C's are more likely to clash than Mode A's; There could be several aircraft 
-// cruising at FL370, but it's less likely (though not impossible) that there are two 
+// Mode C's are more likely to clash than Mode A's; There could be several aircraft
+// cruising at FL370, but it's less likely (though not impossible) that there are two
 // aircraft on the same squawk. Therefore, give precidence to Mode A record matches
 //
-// Note : It's theoretically possible for an aircraft to have the same value for Mode A 
+// Note : It's theoretically possible for an aircraft to have the same value for Mode A
 // and Mode C. Therefore we have to check BOTH A AND C for EVERY S.
 //
 void interactiveUpdateAircraftModeA(struct aircraft *a) {
     struct aircraft *b = Modes.aircrafts;
 
     while(b) {
-        if ((b->modeACflags & MODEAC_MSG_FLAG) == 0) {// skip any fudged ICAO records 
+        if ((b->modeACflags & MODEAC_MSG_FLAG) == 0) {// skip any fudged ICAO records
 
             // If both (a) and (b) have valid squawks...
             if ((a->bFlags & b->bFlags) & MODES_ACFLAGS_SQUAWK_VALID) {
@@ -211,7 +211,7 @@ void interactiveUpdateAircraftModeA(struct aircraft *a) {
                     if ( (b->modeAcount > 0) &&
                        ( (b->modeCcount > 1)
                       || (a->modeACflags & MODEAC_MSG_MODEA_ONLY)) ) // Allow Mode-A only matches if this Mode-A is invalid Mode-C
-                        {a->modeACflags |= MODEAC_MSG_MODES_HIT;}    // flag this ModeA/C probably belongs to a known Mode S                    
+                        {a->modeACflags |= MODEAC_MSG_MODES_HIT;}    // flag this ModeA/C probably belongs to a known Mode S
                 }
             }
 
@@ -226,7 +226,7 @@ void interactiveUpdateAircraftModeA(struct aircraft *a) {
                     a->modeACflags |= MODEAC_MSG_MODEC_HIT;
                     if ( (b->modeAcount > 0) &&
                          (b->modeCcount > 1) )
-                        {a->modeACflags |= (MODEAC_MSG_MODES_HIT | MODEAC_MSG_MODEC_OLD);} // flag this ModeA/C probably belongs to a known Mode S                    
+                        {a->modeACflags |= (MODEAC_MSG_MODES_HIT | MODEAC_MSG_MODEC_OLD);} // flag this ModeA/C probably belongs to a known Mode S
                 }
             }
         }
@@ -452,8 +452,8 @@ void interactiveShowData(void) {
             int flags = a->modeACflags;
 
             if ( (((flags & (MODEAC_MSG_FLAG                             )) == 0                    )                 )
-              || (((flags & (MODEAC_MSG_MODES_HIT | MODEAC_MSG_MODEA_ONLY)) == MODEAC_MSG_MODEA_ONLY) && (msgs > 4  ) ) 
-              || (((flags & (MODEAC_MSG_MODES_HIT | MODEAC_MSG_MODEC_OLD )) == 0                    ) && (msgs > 127) ) 
+              || (((flags & (MODEAC_MSG_MODES_HIT | MODEAC_MSG_MODEA_ONLY)) == MODEAC_MSG_MODEA_ONLY) && (msgs > 4  ) )
+              || (((flags & (MODEAC_MSG_MODES_HIT | MODEAC_MSG_MODEC_OLD )) == 0                    ) && (msgs > 127) )
               ) {
                 int altitude = a->altitude, speed = a->speed;
                 char strSquawk[5] = " ";
@@ -484,7 +484,7 @@ void interactiveShowData(void) {
                     if (a->bFlags & MODES_ACFLAGS_ALTITUDE_VALID) {
                         snprintf(strFl,6,"F%03d",(altitude/100));
                     }
-                    printf("%06x %-8s %-4s         %-3s %-3s %4s        %-6d  %-2d\n", 
+                    printf("%06x %-8s %-4s         %-3s %-3s %4s        %-6d  %-2d\n",
                     a->addr, a->flight, strFl, strGs, strTt, strSquawk, msgs, (int)(now - a->seen));
 
                 } else {                         // Dump1090 display mode
@@ -492,8 +492,8 @@ void interactiveShowData(void) {
                     char strLat[8]                = " ";
                     char strLon[9]                = " ";
                     unsigned char * pSig       = a->signalLevel;
-                    unsigned int signalAverage = (pSig[0] + pSig[1] + pSig[2] + pSig[3] + 
-                                                  pSig[4] + pSig[5] + pSig[6] + pSig[7] + 3) >> 3; 
+                    unsigned int signalAverage = (pSig[0] + pSig[1] + pSig[2] + pSig[3] +
+                                                  pSig[4] + pSig[5] + pSig[6] + pSig[7] + 3) >> 3;
 
                     if ((flags & MODEAC_MSG_FLAG) == 0) {
                         strMode[0] = 'S';
