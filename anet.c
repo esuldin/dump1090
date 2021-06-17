@@ -174,7 +174,11 @@ static int anetTcpGenericConnect(char *err, char *addr, int port, int flags)
         he = gethostbyname(addr);
         if (he == NULL) {
             anetSetError(err, "can't resolve: %s", addr);
+#ifdef _WIN32
+            closesocket(s);
+#else
             close(s);
+#endif
             return ANET_ERR;
         }
         memcpy(&sa.sin_addr, he->h_addr, sizeof(struct in_addr));
@@ -189,7 +193,11 @@ static int anetTcpGenericConnect(char *err, char *addr, int port, int flags)
             return s;
 
         anetSetError(err, "connect: %s", strerror(errno));
+#ifdef _WIN32
+        closesocket(s);
+#else
         close(s);
+#endif
         return ANET_ERR;
     }
     return s;
@@ -241,7 +249,11 @@ static int anetListen(char *err, int s, struct sockaddr *sa, socklen_t len) {
         errno = WSAGetLastError();
 #endif
         anetSetError(err, "bind: %s", strerror(errno));
+#ifdef _WIN32
+        closesocket(s);
+#else
         close(s);
+#endif
         return ANET_ERR;
     }
 
@@ -253,7 +265,11 @@ static int anetListen(char *err, int s, struct sockaddr *sa, socklen_t len) {
         errno = WSAGetLastError();
 #endif
         anetSetError(err, "listen: %s", strerror(errno));
+#ifdef _WIN32
+        closesocket(s);
+#else
         close(s);
+#endif
         return ANET_ERR;
     }
     return ANET_OK;
@@ -273,7 +289,11 @@ int anetTcpServer(char *err, int port, char *bindaddr)
     sa.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bindaddr && inet_aton(bindaddr, (void*)&sa.sin_addr) == 0) {
         anetSetError(err, "invalid bind address");
+#ifdef _WIN32
+        closesocket(s);
+#else
         close(s);
+#endif
         return ANET_ERR;
     }
     if (anetListen(err,s,(struct sockaddr*)&sa,sizeof(sa)) == ANET_ERR)

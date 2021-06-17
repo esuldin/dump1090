@@ -311,8 +311,13 @@ int main(int argc, char **argv) {
     }
 
     // The user has stopped us, so close any socket we opened
-    if (fd != ANET_ERR) 
-      {close(fd);}
+    if (fd != ANET_ERR) {
+#ifdef _WIN32
+        closesocket(fd);
+#else
+        close(fd);
+#endif
+    }
 
     return (0);
 }
