@@ -30,6 +30,9 @@
 //
 #include "coaa.h"
 #include "dump1090.h"
+
+#include <stdbool.h>
+
 //
 // ============================= Utility functions ==========================
 //
@@ -191,9 +194,11 @@ void modesInit(void) {
     // Prepare error correction tables
     modesInitErrorInfo();
 }
+
 //
 // =============================== RTLSDR handling ==========================
 //
+#ifdef HAVE_RTLSDR_SUPPORT
 int modesInitRTLSDR(void) {
     int j;
     int device_count;
@@ -247,6 +252,7 @@ int modesInitRTLSDR(void) {
     Modes.hackrf_enabled = 0;
     return (0);
 }
+
 //
 //=========================================================================
 //
@@ -292,7 +298,9 @@ void rtlsdrCallback(unsigned char *buf, uint32_t len, void *ctx) {
     pthread_cond_signal(&Modes.data_cond);
     pthread_mutex_unlock(&Modes.data_mutex);
 }
+#endif // #ifdef HAVE_RTLSDR_SUPPORT
 
+#ifdef HAVE_HACKRF_SUPPORT
 // =============================== HackRF One handling ==========================
 int modesInitHackRF(void) {
     #define HACKRF_STATUS(status, message) \
@@ -368,6 +376,8 @@ int hackrfCallback (hackrf_transfer *transfer) {
     pthread_mutex_unlock(&Modes.data_mutex);
     return (0);
 }
+#endif //#ifdef HAVE_HACKRF_SUPPORT
+
 //
 //=========================================================================
 //
@@ -433,20 +443,24 @@ void *readerThreadEntryPoint(void *arg) {
     MODES_NOTUSED(arg);
 
     if (Modes.filename == NULL) {
+#ifdef HAVE_RTLSDR_SUPPORT
         if (Modes.rtl_enabled) {
             rtlsdr_read_async(Modes.dev, rtlsdrCallback, NULL,
                               MODES_ASYNC_BUF_NUMBER,
                               MODES_ASYNC_BUF_SIZE);
-        } 
-        else if (Modes.hackrf_enabled) {
+        }
+#endif
+#ifdef HAVE_HACKRF_SUPPORT
+        if (Modes.hackrf_enabled) {
             int status = hackrf_start_rx(Modes.hackrf, hackrfCallback, NULL);
-            if (status != 0) { 
-                fprintf(stderr, "hackrf_start_rx failed"); 
-                hackrf_close(Modes.hackrf); 
-                hackrf_exit(); 
-                exit (1); 
-            } 
-        }       
+            if (status != 0) {
+                fprintf(stderr, "hackrf_start_rx failed");
+                hackrf_close(Modes.hackrf);
+                hackrf_exit();
+                exit (1);
+            }
+        }
+#endif
     } else {
         readDataFromFile();
     }
@@ -696,6 +710,7 @@ void backgroundTasks(void) {
 //
 int verbose_device_search(char *s)
 {
+#ifdef HAVE_RTLSDR_SUPPORT
 	int i, device_count, device, offset;
 	char *s2;
 	char vendor[256], product[256], serial[256];
@@ -750,6 +765,8 @@ int verbose_device_search(char *s)
 			device, rtlsdr_get_device_name((uint32_t)device));
 		return device;
 	}
+#endif // #ifdef HAVE_RTLSDR_SUPPORT
+
 	fprintf(stderr, "No matching devices found.\n");
 	return -1;
 }
@@ -905,12 +922,16 @@ int main(int argc, char **argv) {
     if (Modes.net_only) {
         fprintf(stderr,"Net-only mode, no RTL device or file open.\n");
     } else if (Modes.filename == NULL) {
-        if ( modesInitRTLSDR() ) {
-            // No RTLSDR found, check for HackRF One
-            if ( modesInitHackRF() ) {
-                //fprintf(stderr,"You need a compatible SDR device.\n");
-                exit (1);
-            }
+        bool is_initialized = false;
+
+#ifdef HAVE_RTLSDR_SUPPORT
+        is_initialized = is_initialized || (modesInitRTLSDR() == 0);
+#endif
+#ifdef HAVE_HACKRF_SUPPORT
+        is_initialized = is_initialized || (modesInitHackRF() == 0);
+#endif
+        if (!is_initialized) {
+            exit (1);
         }
     } else {
         if (Modes.filename[0] == '-' && Modes.filename[1] == '\0') {
@@ -995,8 +1016,10 @@ int main(int argc, char **argv) {
     }
 
     if (Modes.filename == NULL) {
+#ifdef HAVE_RTLSDR_SUPPORT
         rtlsdr_cancel_async(Modes.dev);  // Cancel rtlsdr_read_async will cause data input thread to terminate cleanly
         rtlsdr_close(Modes.dev);
+#endif
     }
     pthread_cond_destroy(&Modes.data_cond);     // Thread cleanup
     pthread_mutex_destroy(&Modes.data_mutex);

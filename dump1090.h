@@ -57,13 +57,21 @@
     #include <ctype.h>
     #include <sys/stat.h>
     #include <sys/ioctl.h>
+#ifdef HAVE_RTLSDR_SUPPORT
     #include "rtl-sdr.h"
+#endif
+#ifdef HAVE_HACKRF_SUPPORT
     #include "hackrf.h"
+#endif
     #include "anet.h"
 #else
     #include "winstubs.h" //Put everything Windows specific in here
+#ifdef HAVE_RTLSDR_SUPPORT
     #include "rtl-sdr.h"
+#endif
+#ifdef HAVE_HACKRF_SUPPORT
     #include "hackrf.h"
+#endif
     #include "anet.h"
 #endif
 
@@ -270,14 +278,18 @@ struct {                             // Internal state
     int           dev_index;
     int           gain;
     int           enable_agc;
+#ifdef HAVE_RTLSDR_SUPPORT
     rtlsdr_dev_t *dev;
+#endif
 
     // HackRF One
     int hackrf_enabled;
     int enable_amp;
     int lna_gain;
     int vga_gain;
+#ifdef HAVE_HACKRF_SUPPORT
     hackrf_device* hackrf;
+#endif
 
     // SDR Common
     int           freq;
