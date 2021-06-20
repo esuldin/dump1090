@@ -1,0 +1,9 @@
+[submodule "dependencies/pthread"]
+	path = dependencies/pthread
+	url = https://github.com/esuldin/dump1090.dependencies.pthread.git
+[submodule "dependencies/libhackrf"]
+	path = dependencies/libhackrf
+	url = https://github.com/esuldin/dump1090.dependencies.libhackrf.git
+[submodule "dependencies/librtlsdr"]
+	path = dependencies/librtlsdr
+	url = https://github.com/esuldin/dump1090.dependencies.librtlsdr.git

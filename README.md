@@ -1,8 +1,10 @@
 
+
+
 Dump1090 README
 ===
 
-Dump 1090 is a Mode S decoder specifically designed for RTL-SDR and HackRF One devices.
+Dump1090 is a Mode S decoder specifically designed for RTL-SDR and HackRF One devices.
 
 The main features are:
 
@@ -25,10 +27,42 @@ The main features are:
 
 This is a fork of Malcolm Robb's [dump1090](https://github.com/MalcolmRobb/dump1090) with additional HackRF support. This fork can be build on POSIX complaint systems and Windows.
 
-Installation
+Building on Linux
 ---
 
-Type "make".
+1. Install necessary libraries, for example for Ubuntu
+
+        sudo apt install libhackrf-dev librtlsdr-dev
+
+2. Clone repository
+
+        git clone --recurse-submodules https://github.com/esuldin/dump1090.git
+
+3. Create build directory
+
+        mkdir dump1090/build && cd $_
+
+4. Configure the project and build it
+
+        cmake ../ -DHAVE_HACKRF_SUPPORT=1 -DHAVE_RTLSDR_SUPPORT=1
+        make
+ 
+Building on Windows
+---
+
+1. Clone repository
+
+        git clone --recurse-submodules https://github.com/esuldin/dump1090.git
+
+2. Create build directory
+
+        mkdir dump1090\build && cd dump1090\build
+
+3. Configure the solution
+
+        cmake ../ -DHAVE_HACKRF_SUPPORT=1 -DHAVE_RTLSDR_SUPPORT=1
+
+3. Open `Dump1090.sln` solution file in `dump1090\build` and build the projects
 
 Normal usage
 ---

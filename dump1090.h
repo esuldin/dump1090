@@ -66,7 +66,7 @@
     #include "rtl-sdr.h"
 #endif
 #ifdef HAVE_HACKRF_SUPPORT
-    #include "hackrf.h"
+    #include <libhackrf/hackrf.h>
 #endif
     #include "anet.h"
 #else
@@ -75,7 +75,7 @@
     #include "rtl-sdr.h"
 #endif
 #ifdef HAVE_HACKRF_SUPPORT
-    #include "hackrf.h"
+    #include <libhackrf/hackrf.h>
 #endif
     #include "anet.h"
 #endif
