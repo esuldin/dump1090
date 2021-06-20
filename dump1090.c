@@ -32,7 +32,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "coaa.h"
 #include "dump1090.h"
 
 #include <stdbool.h>
