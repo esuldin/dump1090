@@ -64,6 +64,8 @@ Building on Windows
 
 3. Open `Dump1090.sln` solution file in `dump1090\build` and build the projects
 
+Please note, you need Windows SDK to build dump1090 on Windows. Because dump1090 uses Winsock2 on Windows.
+
 Normal usage
 ---
 
