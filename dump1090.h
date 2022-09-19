@@ -109,6 +109,7 @@
 #define MODES_ENABLE_AMP           0
 #define MODES_LNA_GAIN             32
 #define MODES_VGA_GAIN             48
+#define MODES_ANTENNA_POWER        0
 
 // When changing, change also fixBitErrors() and modesInitErrorTable() !!
 #define MODES_MAX_BITERRORS        2                          // Global max for fixable bit erros
@@ -292,6 +293,7 @@ struct {                             // Internal state
     int enable_amp;
     int lna_gain;
     int vga_gain;
+    int antenna_power;
 #ifdef HAVE_HACKRF_SUPPORT
     hackrf_device* hackrf;
 #endif
