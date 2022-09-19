@@ -76,6 +76,7 @@ void modesInitConfig(void) {
     Modes.gain                    = MODES_MAX_GAIN;
     Modes.lna_gain                = MODES_LNA_GAIN;
     Modes.vga_gain                = MODES_VGA_GAIN;
+    Modes.antenna_power           = MODES_ANTENNA_POWER;
     Modes.freq                    = MODES_DEFAULT_FREQ;
     Modes.ppm_error               = MODES_DEFAULT_PPM;
     Modes.check_crc               = 1;
@@ -337,6 +338,9 @@ int modesInitHackRF(void) {
     status = hackrf_set_vga_gain(Modes.hackrf, Modes.vga_gain);
     HACKRF_STATUS(status, "hackrf_set_vga_gain failed");
 
+    status = hackrf_set_antenna_enable(Modes.hackrf, Modes.antenna_power);
+    HACKRF_STATUS(status, "hackrf_set_antenna_enable failed");
+
     fprintf (stderr, "HackRF successfully initialized "
                      "(AMP Enable: %i, LNA Gain: %i, VGA Gain: %i).\n",
                      Modes.enable_amp, Modes.lna_gain, Modes.vga_gain);
@@ -509,6 +513,7 @@ void showHelp(void) {
 "--gain <db>              Set RTLSDR gain (default: max gain. Use -100 for auto-gain).\n"
 "--enable-agc             Enable RTLSDR Automatic Gain Control (default: off).\n"
 "--enable-amp             Enable HackRF RX/TX RF amplifier (default: off).\n"
+"--enable-ant-power       Enable HackRF DC Antenna power - 3.5v (default: off).\n"
 "--lna-gain               Set HackRF RX LNA (IF) gain, 0-40dB, 8dB steps (default: 32).\n"
 "--vga-gain               Set HackRF RX VGA (baseband) gain, 0-62dB, 2dB steps (default: 48).\n"
 "--freq <hz>              Set frequency (default: 1090 Mhz)\n"
@@ -797,6 +802,8 @@ int main(int argc, char **argv) {
             Modes.enable_agc++;
         } else if (!strcmp(argv[j],"--enable-amp")) {
             Modes.enable_amp = 1;
+        } else if (!strcmp(argv[j], "--enable-ant-power")) {
+            Modes.antenna_power = 1;
         } else if (!strcmp(argv[j],"--lna-gain")) {
             Modes.lna_gain =  atoi(argv[++j]);
         } else if (!strcmp(argv[j],"--vga-gain")) {
