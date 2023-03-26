@@ -30,39 +30,38 @@ This is a fork of Malcolm Robb's [dump1090](https://github.com/MalcolmRobb/dump1
 Building on Linux
 ---
 
-1. Install necessary libraries, for example for Ubuntu
+1. Install necessary tool and libraries, for example for Ubuntu
 
-        sudo apt install libhackrf-dev librtlsdr-dev
+       sudo apt install pkg-config libhackrf-dev librtlsdr-dev
 
 2. Clone repository
 
-        git clone --recurse-submodules https://github.com/esuldin/dump1090.git
+       git clone --recurse-submodules https://github.com/esuldin/dump1090.git
 
 3. Create build directory
 
-        mkdir dump1090/build && cd $_
+       mkdir dump1090/build && cd $_
 
 4. Configure the project and build it
 
-        cmake ../ -DHAVE_HACKRF_SUPPORT=1 -DHAVE_RTLSDR_SUPPORT=1
-        make
+       cmake ../ -DHAVE_HACKRF_SUPPORT=1 -DHAVE_RTLSDR_SUPPORT=1
+       cmake --build .
  
 Building on Windows
 ---
 
 1. Clone repository
 
-        git clone --recurse-submodules https://github.com/esuldin/dump1090.git
+       git clone --recurse-submodules https://github.com/esuldin/dump1090.git
 
 2. Create build directory
 
-        mkdir dump1090\build && cd dump1090\build
+       mkdir dump1090\build && cd dump1090\build
 
-3. Configure the solution
+3. Configure the solution and build it
 
-        cmake ../ -DHAVE_HACKRF_SUPPORT=1 -DHAVE_RTLSDR_SUPPORT=1
-
-3. Open `Dump1090.sln` solution file in `dump1090\build` and build the projects
+       cmake ../ -DHAVE_HACKRF_SUPPORT=1 -DHAVE_RTLSDR_SUPPORT=1
+       cmake --build . --config Release
 
 Please note, you need Windows SDK to build dump1090 on Windows. Because dump1090 uses Winsock2 on Windows.
 
