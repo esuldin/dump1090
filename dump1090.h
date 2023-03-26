@@ -255,10 +255,10 @@ struct stDF {
     uint64_t         llTimestamp;                // Timestamp at which the this packet was received
     uint32_t         addr;                       // Timestamp at which the this packet was received
     unsigned char    msg[MODES_LONG_MSG_BYTES];  // the binary
-} tDF;
+};
 
 // Program global state
-struct {                             // Internal state
+struct modes {                       // Internal state
     pthread_t       reader_thread;
 
     pthread_mutex_t data_mutex;      // Mutex to synchronize buffer access
@@ -405,7 +405,9 @@ struct {                             // Internal state
 
     unsigned int stat_blocks_processed;
     unsigned int stat_blocks_dropped;
-} Modes;
+};
+
+extern struct modes Modes;
 
 // The struct we use to store information about a decoded message.
 struct modesMessage {

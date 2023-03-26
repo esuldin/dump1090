@@ -36,6 +36,8 @@
 
 #include <stdbool.h>
 
+struct modes Modes;
+
 //
 // ============================= Utility functions ==========================
 //
